@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Logo</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/magnifier.css">
+    <link rel="stylesheet" href="css/gallery.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script type="text/javascript" src="js/Event.js"></script>
+    <script type="text/javascript" src="js/Magnifier.js"></script>
+    <script type="text/javascript" src="js/Gallery.js"></script>
+    <script type="text/javascript" src="js/MagnifyGallery.js"></script>
+
+
+</head>
+<body>
+<br><br><br>
+<div class="container">
+    <div class="col-md-6">
+        <div class="col-md-12">
+            <select id="selectLogo" name="selectLogo" class="form-control">
+                <option value="0">Choose Logo</option>
+                <option value="mapleLeafs.png">Maple Leafs</option>
+                <option value="raptors.png">Raptors</option>
+            </select>
+        </div>
+        <div class="col-md-12">
+            <!--&lt;!&ndash;<img id="logoImg" src="" alt="" style="position:absolute; z-index: 1; display:none;" width="300">&ndash;&gt;-->
+            <!--<img id="shirtImg" src="images/GS-blue.jpg" alt="" width="300">-->
+            <!--<img id="canvasImg" src="" alt="">-->
+            <div class="gallery">
+                <div class="slider" >
+                    <ul id="gallery"></ul>
+                </div>
+
+                <div hidden class="btn-wrapper">
+                    <button class="prev" id="gallery-prev">&lt;</button>
+                    <button class="next" id="gallery-next">&gt;</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="logoDiv" class="col-md-6">
+        <div class="magnifier-preview" id="gallery-preview" style="width:500px; height:500px"></div>
+        <canvas id="cvs" width="600" height="600" style="display: none"></canvas>
+
+    </div>
+
+    <div class="col-md-12">
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+    var canvas = document.getElementById('cvs');
+    var context = canvas.getContext('2d');
+
+    window.onload = function() {
+
+        var evt = new Event(),
+            m = new Magnifier(evt, {
+                largeWrapper: document.getElementById('gallery-preview')
+
+            }),
+            imageData = [
+                {
+                    thumb: 'images/GS-blue-small.jpg',
+                    large: 'images/GS-blue.jpg'
+                }
+            ],
+
+            gallery = new Gallery(evt, m, {
+                gallery: document.getElementById('gallery'),
+                images: imageData,
+                prev: document.getElementById('gallery-prev'),
+                next: document.getElementById('gallery-next'),
+                previewText: document.getElementById('gallery-preview-title')
+            });
+
+
+        var images = document.getElementById('gallery').getElementsByTagName('img');
+        console.log(images[0].parentNode);
+
+        var shirtImg = images[0];
+
+
+
+
+
+        var selector = document.getElementById("selectLogo");
+        // var logoImg  = document.getElementById("logoImg");
+        // var shirtImg = document.getElementById("shirtImg");
+
+        var original = new Image();
+        original.src = shirtImg.src;
+
+
+        console.log(original)
+
+        selector.addEventListener("change", function() {
+            if(document.getElementById('selectLogo').options[document.getElementById('selectLogo').selectedIndex].value != 0) {
+
+                drawImages()
+            }
+            else {
+
+                clearCanvas(canvas)
+                context.drawImage(original, 0, 0, canvas.width, canvas.height);
+                canvasToImage();
+            }
+
+        });
+
+
+
+
+
+        function loadImage(url) {
+            return new Promise((resolve, reject) => {
+                let image = new Image()
+
+                image.onload = function() {
+                    resolve(image)
+                }
+
+                image.onerror = function() {
+                    let msg = 'Could not load image at ' + url;
+                    reject(new Error(msg))
+                }
+
+                image.src = url
+
+            })
+        }
+
+        function clearCanvas(canvas) {
+            var ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function drawImages() {
+
+
+
+            Promise.all([
+                loadImage(original.src),
+                loadImage("images/" +  document.getElementById('selectLogo').options[document.getElementById('selectLogo').selectedIndex].value)
+            ]).then((images) => {
+
+                clearCanvas(canvas);
+                drawCanvas(images);
+
+                //canvasToImage();
+                refreshMagnifier()
+
+            }).catch((error) => {
+                console.log("Image not found")
+            })
+
+        }
+
+        function drawCanvas(images) {
+            context.drawImage(images[0], 0, 0, canvas.width, canvas.height);
+            context.drawImage(images[1], 0, 0, canvas.width, canvas.height);
+        }
+
+        function canvasToImage() {
+            // save canvas image as data url (png format by default)
+            var dataURL = canvas.toDataURL();
+
+            // set canvasImg image src to dataURL
+            // so it can be saved as an image
+
+
+            refreshMagnifier();
+
+
+        }
+
+
+
+    }
+
+
+
+
+</script>
+
+</body>
+</html>
